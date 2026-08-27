@@ -1,0 +1,121 @@
+.category-grid {
+  padding: 56px 0;
+}
+
+.category-grid--dark {
+  padding: 0;
+}
+
+.category-grid--dark .grid-heading {
+  color: var(--color-white);
+}
+
+.category-grid__cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.category-grid__cards--compact {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Default (confirmed) real treatment: plain light square tile, product
+   photo scaled/centered, bold label below — not an overlay. */
+.category-grid__card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.category-grid__media {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background: var(--color-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.category-grid__media img {
+  width: 75%;
+  height: 75%;
+  object-fit: contain;
+  transition: transform 0.25s ease;
+}
+
+.category-grid__card:hover .category-grid__media img {
+  transform: scale(1.06);
+}
+
+.category-grid__card span {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--color-ink);
+}
+
+.category-grid--dark .category-grid__card span {
+  color: var(--color-white);
+}
+
+/* Overlay variant — used only where the real page actually shows a
+   photographic card with a gradient + white caption on top of it
+   (the sustainability "blade" cards). */
+.category-grid__cards--overlay .category-grid__card {
+  position: relative;
+  display: block;
+}
+
+.category-grid__cards--overlay .category-grid__media {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  border-radius: 16px;
+  background: var(--color-gray-50);
+}
+
+.category-grid__cards--overlay .category-grid__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.category-grid__cards--overlay .category-grid__card {
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.category-grid__cards--overlay .category-grid__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 55%);
+}
+
+.category-grid__cards--overlay .category-grid__card span {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  padding: 16px;
+  margin-top: auto;
+  font-weight: 700;
+  color: var(--color-white);
+}
+
+@media (max-width: 900px) {
+  .category-grid__cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .category-grid__cards--compact {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .category-grid__cards--compact {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

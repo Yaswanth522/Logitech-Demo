@@ -19,6 +19,7 @@ export default function ChatWidget() {
   const hasInitialized = useRef(false);
   const prevEmail = useRef(user?.email);
   const visitedUrls = useRef([]);
+  const lastSentPathname = useRef(null);
 
   // Load the widget's loader script exactly once
   useEffect(() => {
@@ -33,14 +34,28 @@ export default function ChatWidget() {
     document.head.appendChild(script);
   }, []);
 
-  // Record every page the visitor lands on (since this SPA session started)
-  // without touching the widget — this is what lets us report the full
-  // navigation trail without reloading the widget on every click.
+  // Record every page the visitor lands on (since this SPA session started).
   useEffect(() => {
     if (visitedUrls.current[visitedUrls.current.length - 1] !== pathname) {
       visitedUrls.current.push(pathname);
     }
   }, [pathname]);
+
+  // Push a live update on every navigation via sendEvent — the SDK's
+  // lightweight channel for this, confirmed not to reload/reinit the widget
+  // (unlike calling init() again, which destroys and rebuilds the whole
+  // widget UI and is what caused the visible "refresh" on every click).
+  useEffect(() => {
+    if (!hasInitialized.current || typeof window.ChatWidget?.sendEvent !== "function") return;
+    if (lastSentPathname.current === pathname) return;
+    lastSentPathname.current = pathname;
+
+    window.ChatWidget.sendEvent("context_update", {
+      ...(user?.email ? { email: user.email } : {}),
+      productName: productNameFor(pathname),
+      visitedUrls: [...visitedUrls.current],
+    });
+  }, [pathname, user?.email]);
 
   function initWidget() {
     window.ChatWidget.init({

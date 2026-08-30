@@ -1,33 +1,33 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { answerQuery, openLogiChat } from "../utils/logiAnswer";
 import "./SearchDialog.css";
 
-const SUGGESTIONS = ["MX Master 3S", "MX Keys S", "Webcams", "Streaming light"];
-
-const LOADING_MESSAGES = [
-  "Searching logitech.com…",
-  "Looking through products…",
-  "Almost there…",
+const SUGGESTIONS = [
+  "Keyboard not pairing",
+  "What is MX Master 3S",
+  "Webcam looks dark",
+  "Mouse not charging",
 ];
+const MIN_QUERY = 3;
+const THINK_MS = 480;
 
 export default function SearchDialog({ open, onClose }) {
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | loading | results
-  const [loadingText, setLoadingText] = useState(LOADING_MESSAGES[0]);
+  const [status, setStatus] = useState("idle");
+  const [resolvedQuery, setResolvedQuery] = useState("");
   const inputRef = useRef(null);
-  const timers = useRef([]);
+  const navigate = useNavigate();
+
+  const result = useMemo(() => (resolvedQuery ? answerQuery(resolvedQuery) : null), [resolvedQuery]);
 
   useEffect(() => {
-    if (open) {
-      setQuery("");
-      setStatus("idle");
-      setLoadingText(LOADING_MESSAGES[0]);
-      const focusTimer = setTimeout(() => inputRef.current?.focus(), 50);
-      timers.current.push(focusTimer);
-    }
-    return () => {
-      timers.current.forEach(clearTimeout);
-      timers.current = [];
-    };
+    if (!open) return;
+    setQuery("");
+    setStatus("idle");
+    setResolvedQuery("");
+    const focusTimer = setTimeout(() => inputRef.current?.focus(), 50);
+    return () => clearTimeout(focusTimer);
   }, [open]);
 
   useEffect(() => {
@@ -39,34 +39,43 @@ export default function SearchDialog({ open, onClose }) {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
-  function runSearch(value) {
-    const trimmed = value.trim();
-    if (!trimmed) return;
-    setQuery(trimmed);
-    setStatus("loading");
-    setLoadingText(LOADING_MESSAGES[0]);
+  useEffect(() => {
+    if (!open) return;
+    const trimmed = query.trim();
+    if (trimmed.length < MIN_QUERY) {
+      setStatus("idle");
+      setResolvedQuery("");
+      return;
+    }
 
-    const t1 = setTimeout(() => setLoadingText(LOADING_MESSAGES[1]), 500);
-    const t2 = setTimeout(() => setLoadingText(LOADING_MESSAGES[2]), 1000);
-    const t3 = setTimeout(() => setStatus("results"), 1500);
-    timers.current.push(t1, t2, t3);
+    setStatus("loading");
+    const timer = setTimeout(() => {
+      setResolvedQuery(trimmed);
+      setStatus("ready");
+    }, THINK_MS);
+    return () => clearTimeout(timer);
+  }, [query, open]);
+
+  function goTo(href) {
+    onClose();
+    navigate(href);
+  }
+
+  function handleChat() {
+    const handoff = (resolvedQuery || query).trim();
+    onClose();
+    openLogiChat(handoff);
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    runSearch(query);
-  }
-
-  function handleClose() {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-    onClose();
+    if (status === "ready" && result?.href) goTo(result.href);
   }
 
   if (!open) return null;
 
   return (
-    <div className="search-dialog__backdrop" onMouseDown={handleClose}>
+    <div className="search-dialog__backdrop" onMouseDown={onClose}>
       <div
         className="search-dialog"
         role="dialog"
@@ -81,10 +90,20 @@ export default function SearchDialog({ open, onClose }) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products, support, and more"
+            placeholder="Ask Logi — products or a problem"
             aria-label="Search"
           />
-          <button type="button" className="search-dialog__close" onClick={handleClose} aria-label="Close search">
+          {query && (
+            <button
+              type="button"
+              className="search-dialog__clear"
+              onClick={() => setQuery("")}
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+          <button type="button" className="search-dialog__close" onClick={onClose} aria-label="Close search">
             <CloseIcon />
           </button>
         </form>
@@ -92,10 +111,10 @@ export default function SearchDialog({ open, onClose }) {
         <div className="search-dialog__body">
           {status === "idle" && (
             <div className="search-dialog__suggestions">
-              <span className="search-dialog__label">Popular searches</span>
+              <span className="search-dialog__label">Try asking</span>
               <div className="search-dialog__chips">
                 {SUGGESTIONS.map((s) => (
-                  <button key={s} type="button" onClick={() => runSearch(s)}>
+                  <button key={s} type="button" onClick={() => setQuery(s)}>
                     {s}
                   </button>
                 ))}
@@ -106,44 +125,68 @@ export default function SearchDialog({ open, onClose }) {
           {status === "loading" && (
             <div className="search-dialog__loading">
               <span className="search-dialog__spinner" />
-              <p>{loadingText}</p>
+              <p>Looking that up…</p>
             </div>
           )}
 
-          {status === "results" && (
-            <div className="search-dialog__results">
-              <p className="search-dialog__results-heading">
-                Results for &ldquo;{query}&rdquo;
-              </p>
-              <p className="search-dialog__disclaimer">
-                This is a static demo — search doesn't run a real query here.
-              </p>
-              <ul className="search-dialog__result-list">
-                <li>
-                  <span className="search-dialog__result-icon">🖱️</span>
-                  <div>
-                    <strong>MX Master 3S</strong>
-                    <p>Wireless Performance Mouse — $99.99</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="search-dialog__result-icon">⌨️</span>
-                  <div>
-                    <strong>MX Keys S</strong>
-                    <p>Wireless Illuminated Keyboard — $109.99</p>
-                  </div>
-                </li>
-                <li>
-                  <span className="search-dialog__result-icon">📷</span>
-                  <div>
-                    <strong>4K Pro Webcam (Brio)</strong>
-                    <p>Premium Ultra HD Webcam — $129.99</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          )}
+          {status === "ready" && result && <LogiAnswer result={result} onGo={goTo} onChat={handleChat} />}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function LogiAnswer({ result, onGo, onChat }) {
+  if (result.kind === "empty") {
+    return (
+      <div className="logi-answer">
+        <p className="logi-answer__kicker">Ask Logi</p>
+        <h2 className="logi-answer__title">{result.title}</h2>
+        <p className="logi-answer__body">{result.body}</p>
+      </div>
+    );
+  }
+
+  const isHelp = result.kind === "help";
+
+  return (
+    <div className={`logi-answer ${isHelp ? "is-help" : "is-product"}`}>
+      <p className="logi-answer__kicker">{isHelp ? "Help" : "Ask Logi"}</p>
+      <h2 className="logi-answer__title">{result.title}</h2>
+      <p className="logi-answer__body">{result.body}</p>
+
+      {result.steps?.length > 0 && (
+        <ol className="logi-answer__steps">
+          {result.steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      )}
+
+      {result.product && (
+        <button type="button" className="logi-answer__product" onClick={() => onGo(result.href)}>
+          <img src={result.product.image} alt="" />
+          <span>
+            <strong>{result.product.name}</strong>
+            <em>
+              {isHelp
+                ? result.product.tagline
+                : `$${result.product.price.toFixed(2)} · ${result.rating} (${result.reviewCount} reviews)`}
+            </em>
+          </span>
+        </button>
+      )}
+
+      <div className="logi-answer__actions">
+        <button type="button" className="logi-answer__cta" onClick={() => onGo(result.href)}>
+          {result.cta}
+          <ArrowIcon />
+        </button>
+        {isHelp && (
+          <button type="button" className="logi-answer__secondary" onClick={onChat}>
+            Continue in chat
+          </button>
+        )}
       </div>
     </div>
   );
@@ -163,6 +206,14 @@ function CloseIcon() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
       <line x1="5" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <line x1="19" y1="5" x2="5" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

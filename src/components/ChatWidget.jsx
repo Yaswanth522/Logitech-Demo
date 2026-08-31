@@ -2,10 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getProductBySlug } from "../data/products";
-
-const SCRIPT_SRC = "https://cdn.yellowmessenger.com/plugin/widget-v3/prod/dist/loader.umd.js";
-const BOT_ID = "x1787672212177";
-const HOST = "https://r4.nexus.yellow.ai";
+import { markLogiReady } from "../utils/logiBridge";
+import { BOT_ID, HOST, YM_LOADER_SRC, isLocalWidget } from "../utils/ymWidget";
 
 function productNameFor(pathname) {
   const slug = pathname.match(/^\/products\/([^/]+)/)?.[1];
@@ -19,14 +17,32 @@ export default function ChatWidget() {
   const hasInitialized = useRef(false);
   const visitedUrls = useRef([]);
 
-  // Load the widget's loader script exactly once
   useEffect(() => {
     if (window.ChatWidget) {
       setScriptReady(true);
       return;
     }
+
+    let cancelled = false;
+
+    if (isLocalWidget) {
+      import(/* @vite-ignore */ YM_LOADER_SRC)
+        .then(() => {
+          if (!cancelled) setScriptReady(true);
+        })
+        .catch((error) => {
+          console.error(
+            `[Ask Logi] Local widget loader failed (${YM_LOADER_SRC}). Is widget Vite running on that origin?`,
+            error
+          );
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const script = document.createElement("script");
-    script.src = SCRIPT_SRC;
+    script.src = YM_LOADER_SRC;
     script.async = true;
     script.onload = () => setScriptReady(true);
     document.head.appendChild(script);
@@ -54,10 +70,14 @@ export default function ChatWidget() {
     }
 
     window.ChatWidget.init({
+      // Search renders the assistant's reply in its own UI, so it needs the
+      // reply events — off by default, and not the same thing as SDK mode.
+      hostEvents: true,
       yellowMessenger: {
         botId: BOT_ID,
         host: HOST,
         payload: {
+          source: "ask-logi-search",
           ...(user?.email ? { email: user.email } : {}),
           productName: productNameFor(pathname),
           visitedUrls: [...visitedUrls.current],
@@ -65,6 +85,8 @@ export default function ChatWidget() {
       },
     });
     hasInitialized.current = true;
+    // Re-announced after every re-init; the bridge registers its listeners once.
+    markLogiReady();
   }, [scriptReady, user?.email, pathname]);
 
   return null;

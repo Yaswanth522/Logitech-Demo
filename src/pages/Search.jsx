@@ -5,6 +5,8 @@ import {
   resolveSearch,
   shoppingProductsFor,
 } from "../data/search";
+import LogiAnswer from "../components/LogiAnswer";
+import { useLogiAnswer } from "../utils/useLogiAnswer";
 import "./Search.css";
 
 const LOADING_MS = 900;
@@ -13,9 +15,11 @@ export default function Search() {
   const [params] = useSearchParams();
   const rawQuery = params.get("q") || "";
   const { pack, fallback } = useMemo(() => resolveSearch(rawQuery), [rawQuery]);
+  // The overview at the top of the page is the live assistant answering, not
+  // canned copy — the same reply chat would give, on the same conversation.
+  const answer = useLogiAnswer(rawQuery);
   const [status, setStatus] = useState("loading");
   const [tab, setTab] = useState("all");
-  const [showMore, setShowMore] = useState(false);
   const [activeChip, setActiveChip] = useState(null);
   const navigate = useNavigate();
 
@@ -31,7 +35,6 @@ export default function Search() {
   useEffect(() => {
     setStatus("loading");
     setTab("all");
-    setShowMore(false);
     setActiveChip(null);
     const timer = setTimeout(() => setStatus("ready"), LOADING_MS);
     return () => clearTimeout(timer);
@@ -106,8 +109,9 @@ export default function Search() {
             {tab === "all" && (
               <AllResults
                 pack={pack}
-                showMore={showMore}
-                onToggleMore={() => setShowMore((v) => !v)}
+                query={rawQuery}
+                answer={answer}
+                onGo={(href) => navigate(href)}
               />
             )}
             {tab === "shopping" && <ShoppingResults pack={pack} />}
@@ -157,54 +161,12 @@ function SearchBar({ query, onSubmit }) {
   );
 }
 
-function AllResults({ pack, showMore, onToggleMore }) {
+function AllResults({ pack, query, answer, onGo }) {
   return (
     <>
-      <section className="ai-overview" aria-labelledby="ai-overview-heading">
-        <header className="ai-overview__head">
-          <span className="ai-overview__brand">
-            <SparkleIcon />
-            AI Overview
-          </span>
-          <span className="ai-overview__meta">From logitech.com and support</span>
-        </header>
-
-        <div className="ai-overview__grid">
-          <div className="ai-overview__main">
-            <ProductSnippet pack={pack} />
-            <p className="ai-overview__lead">
-              {renderHighlighted(pack.aiOverview.lead, pack.aiOverview.highlights)}
-            </p>
-            <ul className="ai-overview__features">
-              {pack.aiOverview.features.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-            {showMore && <p className="ai-overview__more">{pack.aiOverview.more}</p>}
-            <button type="button" className="ai-overview__toggle" onClick={onToggleMore}>
-              {showMore ? "Show less" : "Show more"}
-              <Chevron down={!showMore} />
-            </button>
-          </div>
-
-          <aside className="ai-overview__sources" aria-label="Sources">
-            {pack.sources.map((source) => (
-              <Link key={source.title} to={source.href} className="source-card">
-                <div className="source-card__text">
-                  <span className="source-card__site">
-                    <span className="source-card__favicon">{source.site[0]}</span>
-                    {source.site}
-                    <span className="source-card__kind">{source.kind}</span>
-                  </span>
-                  <strong>{source.title}</strong>
-                  <p>{source.snippet}</p>
-                </div>
-                <img src={source.image} alt="" />
-              </Link>
-            ))}
-          </aside>
-        </div>
-      </section>
+      <div className="serp__overview">
+        <LogiAnswer query={query} answer={answer} product={pack.product} onGo={onGo} />
+      </div>
 
       {pack.videos.length > 0 && <VideoResults pack={pack} />}
 
@@ -218,24 +180,6 @@ function AllResults({ pack, showMore, onToggleMore }) {
         ))}
       </section>
     </>
-  );
-}
-
-function ProductSnippet({ pack }) {
-  const { product, rating, reviewCount, merchant } = pack;
-  return (
-    <Link to={`/products/${product.slug}`} className="product-snippet">
-      <img src={product.image} alt="" />
-      <div>
-        <strong>{product.name}</strong>
-        <span className="product-snippet__price">${product.price.toFixed(2)}</span>
-        <span className="product-snippet__merchant">{merchant}</span>
-        <span className="product-snippet__rating">
-          <Stars value={rating} />
-          {rating} ({reviewCount.toLocaleString()} reviews)
-        </span>
-      </div>
-    </Link>
   );
 }
 
@@ -316,68 +260,11 @@ function SerpSkeleton() {
   );
 }
 
-function renderHighlighted(text, phrases) {
-  if (!phrases?.length) return text;
-  const escaped = phrases.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const pattern = new RegExp(`(${escaped.join("|")})`, "gi");
-  const parts = text.split(pattern);
-  return parts.map((part, index) => {
-    const hit = phrases.some((p) => p.toLowerCase() === part.toLowerCase());
-    if (hit) {
-      return (
-        <span key={`${part}-${index}`} className="serp-highlight">
-          {part}
-        </span>
-      );
-    }
-    return part;
-  });
-}
-
-function Stars({ value }) {
-  const filled = Math.round(value);
-  return (
-    <span className="stars" aria-hidden="true">
-      {Array.from({ length: 5 }, (_, i) => (
-        <span key={i} className={i < filled ? "is-on" : ""}>
-          ★
-        </span>
-      ))}
-    </span>
-  );
-}
-
 function SearchIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function SparkleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 3l1.6 5.4L19 10l-5.4 1.6L12 17l-1.6-5.4L5 10l5.4-1.6L12 3Z"
-        fill="#4285F4"
-      />
-      <path d="M18 14l.7 2.3L21 17l-2.3.7L18 20l-.7-2.3L15 17l2.3-.7L18 14Z" fill="#34A853" />
-    </svg>
-  );
-}
-
-function Chevron({ down }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d={down ? "M6 9l6 6 6-6" : "M6 15l6-6 6 6"}
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 }

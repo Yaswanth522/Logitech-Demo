@@ -37,6 +37,12 @@ body {
   padding: 0;
 }
 
+body.logi-hide-ym-launcher #ym-floating-input,
+body.logi-hide-ym-launcher #ym-floating-button {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 body {
   font-family: var(--font-sans);
   color: var(--color-ink);

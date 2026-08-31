@@ -571,3 +571,21 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* The live answer at the top of the results page. LogiAnswer.css owns the
+   inside; this only gives it the card frame the old ai-overview block had. */
+.serp__overview {
+  max-width: 1100px;
+  margin: 0 auto 28px;
+  padding: 20px 22px;
+  border: 1px solid var(--color-gray-100);
+  border-radius: 18px;
+  background: var(--color-white);
+}
+
+@media (max-width: 900px) {
+  .serp__overview {
+    padding: 16px;
+    border-radius: 14px;
+  }
+}

@@ -1,0 +1,383 @@
+.logi-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.logi-answer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logi-answer__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.logi-answer__brand svg {
+  color: var(--color-accent);
+}
+
+.logi-answer__status {
+  font-size: 13px;
+  color: var(--color-gray-500);
+}
+
+/* Two columns on the results page; the modal stays single-column via is-compact. */
+.logi-answer__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 232px;
+  gap: 28px;
+  align-items: start;
+}
+
+.logi-answer.is-compact .logi-answer__grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.logi-answer__main {
+  min-width: 0;
+}
+
+/* --- product ---------------------------------------------------------- */
+
+.logi-answer__product {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid var(--color-gray-100);
+  border-radius: 12px;
+  background: var(--color-gray-50);
+  cursor: pointer;
+}
+
+.logi-answer__product:hover {
+  border-color: var(--color-gray-300);
+}
+
+.logi-answer__product img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  background: var(--color-white);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.logi-answer__product-copy {
+  min-width: 0;
+}
+
+.logi-answer__product strong {
+  display: block;
+  font-size: 15px;
+}
+
+.logi-answer__product em {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--color-gray-700);
+}
+
+.logi-answer__price {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* --- answer body ------------------------------------------------------ */
+
+.logi-answer__body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.logi-answer__body > :first-child {
+  margin-top: 0;
+}
+
+.logi-answer__body > :last-child {
+  margin-bottom: 0;
+}
+
+.logi-answer__body p {
+  margin: 0 0 12px;
+}
+
+.logi-answer__body ol,
+.logi-answer__body ul {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+.logi-answer__body li {
+  margin-bottom: 7px;
+}
+
+.logi-answer__body h2,
+.logi-answer__body h3,
+.logi-answer__body h4 {
+  margin: 18px 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.logi-answer__body a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.logi-answer__body code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--color-gray-100);
+  font-size: 13px;
+}
+
+.logi-answer__body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/* Caret while the reply is still arriving. */
+.logi-answer__body.is-streaming > :last-child::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.15em;
+  background: var(--color-accent);
+  animation: logi-caret 1s steps(2) infinite;
+}
+
+@keyframes logi-caret {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+.logi-answer__empty {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-gray-700);
+}
+
+/* --- skeleton --------------------------------------------------------- */
+
+.logi-answer__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.logi-answer__skeleton span {
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--color-gray-100) 25%,
+    var(--color-gray-50) 50%,
+    var(--color-gray-100) 75%
+  );
+  background-size: 200% 100%;
+  animation: logi-shimmer 1.3s ease-in-out infinite;
+}
+
+.logi-answer__skeleton span:nth-child(2) { width: 92%; }
+.logi-answer__skeleton span:nth-child(3) { width: 64%; }
+
+@keyframes logi-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logi-answer__skeleton span,
+  .logi-answer__body.is-streaming > :last-child::after {
+    animation: none;
+  }
+}
+
+/* --- sources + rail --------------------------------------------------- */
+
+.logi-answer__label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+}
+
+.logi-answer__sources {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-gray-100);
+}
+
+/* Source cards, not a link list: a citation is a document you might open, so
+   it gets a target big enough to read the title and the domain at a glance. */
+.logi-answer__source-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 8px;
+}
+
+.logi-answer__source-cards a {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-gray-100);
+  border-radius: 10px;
+  background: var(--color-white);
+  text-decoration: none;
+  color: var(--color-ink);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.logi-answer__source-cards a:hover {
+  border-color: var(--color-gray-300);
+  background: var(--color-gray-50);
+}
+
+.logi-answer__source-site {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-gray-500);
+}
+
+.logi-answer__source-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.logi-answer__source-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  /* Two lines max — titles vary wildly in length and a ragged grid reads badly. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.logi-answer__rail {
+  padding: 16px;
+  border: 1px solid var(--color-gray-100);
+  border-radius: 14px;
+  background: var(--color-gray-50);
+}
+
+.logi-answer__rail ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.logi-answer__rail a {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.logi-answer__rail a:hover {
+  text-decoration: underline;
+}
+
+/* --- actions ---------------------------------------------------------- */
+
+.logi-answer__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.logi-answer.is-compact .logi-answer__actions {
+  flex-direction: column;
+}
+
+.logi-answer__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.logi-answer__cta:hover {
+  opacity: 0.88;
+}
+
+.logi-answer__secondary {
+  padding: 12px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--color-ink);
+  background: var(--color-white);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logi-answer__secondary:hover {
+  background: var(--color-gray-50);
+}
+
+@media (max-width: 900px) {
+  .logi-answer__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .logi-answer__actions {
+    flex-direction: column;
+  }
+}

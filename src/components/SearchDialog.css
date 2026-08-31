@@ -19,6 +19,35 @@
   overflow: hidden;
 }
 
+.search-dialog__suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-dialog__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-dialog__chips button {
+  border: 1px solid var(--color-gray-100);
+  background: var(--color-gray-50);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.search-dialog__chips button:hover {
+  border-color: var(--color-gray-300);
+}
+
+.search-dialog__form + .search-dialog__body .search-dialog__chips {
+  padding: 0;
+}
+
 .search-dialog__form {
   display: flex;
   align-items: center;
@@ -89,28 +118,6 @@
   letter-spacing: 0.05em;
   color: var(--color-gray-500);
   margin-bottom: 14px;
-}
-
-.search-dialog__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.search-dialog__chips button {
-  padding: 10px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--color-gray-300);
-  background: var(--color-white);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-ink);
-  cursor: pointer;
-}
-
-.search-dialog__chips button:hover {
-  border-color: var(--color-ink);
-  background: var(--color-gray-50);
 }
 
 .search-dialog__loading {
@@ -282,150 +289,6 @@
 
 .inline-ai__cta:hover {
   opacity: 0.88;
-}
-
-.logi-answer__kicker {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-sustain-dark);
-  margin-bottom: 8px;
-}
-
-.logi-answer.is-help .logi-answer__kicker {
-  color: var(--color-sustain-dark);
-}
-
-.logi-answer__title {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  margin-bottom: 10px;
-}
-
-.logi-answer__body {
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--color-gray-900);
-  margin-bottom: 16px;
-}
-
-.logi-answer__steps {
-  margin: 0 0 18px;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  counter-reset: logi-step;
-}
-
-.logi-answer__steps li {
-  display: flex;
-  gap: 12px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--color-gray-900);
-  counter-increment: logi-step;
-}
-
-.logi-answer__steps li::before {
-  content: counter(logi-step);
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  margin-top: 1px;
-  border-radius: 50%;
-  background: var(--color-ribbon-bg);
-  color: var(--color-sustain-dark);
-  font-size: 12px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logi-answer__product {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  text-align: left;
-  padding: 10px 12px;
-  margin-bottom: 16px;
-  border: 1px solid var(--color-gray-100);
-  border-radius: 12px;
-  background: var(--color-gray-50);
-  cursor: pointer;
-}
-
-.logi-answer__product:hover {
-  border-color: var(--color-gray-300);
-}
-
-.logi-answer__product img {
-  width: 56px;
-  height: 56px;
-  object-fit: contain;
-  background: var(--color-white);
-  border-radius: 8px;
-}
-
-.logi-answer__product strong {
-  display: block;
-  font-size: 14px;
-}
-
-.logi-answer__product em {
-  display: block;
-  margin-top: 4px;
-  font-style: normal;
-  font-size: 13px;
-  color: var(--color-gray-700);
-}
-
-.logi-answer__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.logi-answer__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 20px;
-  border: none;
-  border-radius: 999px;
-  background: var(--color-ink);
-  color: var(--color-white);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-}
-
-.logi-answer__cta:hover {
-  opacity: 0.88;
-}
-
-.logi-answer__secondary {
-  width: 100%;
-  padding: 12px 20px;
-  border-radius: 999px;
-  border: 1px solid var(--color-ink);
-  background: var(--color-white);
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.logi-answer__secondary:hover {
-  background: var(--color-gray-50);
 }
 
 @media (max-width: 560px) {

@@ -3,7 +3,13 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getProductBySlug } from "../data/products";
 import { markLogiReady } from "../utils/logiBridge";
-import { BOT_ID, HOST, YM_LOADER_SRC, isLocalWidget } from "../utils/ymWidget";
+import {
+  BOT_ID,
+  HOST,
+  YM_LOADER_SRC,
+  YM_WIDGET_CHANNEL,
+  isLocalWidget,
+} from "../utils/ymWidget";
 
 function productNameFor(pathname) {
   const slug = pathname.match(/^\/products\/([^/]+)/)?.[1];
@@ -24,6 +30,9 @@ export default function ChatWidget() {
     }
 
     let cancelled = false;
+    // Which build is loaded decides whether send/prewarm/on exist at all, so
+    // say it out loud rather than leaving a missing API to look like a bug.
+    console.info(`[Ask Logi] widget build: ${YM_WIDGET_CHANNEL} (${YM_LOADER_SRC})`);
 
     if (isLocalWidget) {
       import(/* @vite-ignore */ YM_LOADER_SRC)

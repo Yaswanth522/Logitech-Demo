@@ -24,6 +24,14 @@ export default function LogiAnswer({ query, answer, product, onGo, onContinue, c
   const related = (product ? supportArticlesFor(product.slug) : []).filter(
     (a) => !cited.has(a.url)
   );
+  /**
+   * Everything below the answer waits for the answer. Committing the actions
+   * and the reading list while the reply is still a skeleton makes the answer
+   * itself look like an afterthought slotted into finished furniture. The
+   * timeout state is the exception — it has no answer but still needs the way
+   * out that its copy points at.
+   */
+  const hasAnswer = Boolean(text) || status === "timeout";
 
   function handleContinue() {
     if (onContinue) onContinue();
@@ -80,23 +88,26 @@ export default function LogiAnswer({ query, answer, product, onGo, onContinue, c
             </div>
           )}
 
-          <div className="logi-answer__actions">
-            <button type="button" className="logi-answer__cta" onClick={handleContinue}>
-              Continue in chat
-            </button>
-            {product && (
-              <button
-                type="button"
-                className="logi-answer__secondary"
-                onClick={() => onGo?.(`/products/${product.slug}`)}
-              >
-                View {product.name}
+          {hasAnswer && (
+            <div className="logi-answer__actions">
+              <button type="button" className="logi-answer__cta" onClick={handleContinue}>
+                Continue in chat
               </button>
-            )}
-          </div>
+              {product && (
+                <button
+                  type="button"
+                  className="logi-answer__secondary"
+                  onClick={() => onGo?.(`/products/${product.slug}`)}
+                >
+                  View {product.name}
+                  <ArrowIcon />
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
-        {related.length > 0 && (
+        {hasAnswer && related.length > 0 && (
           <aside className="logi-answer__rail" aria-label="More support articles">
             <span className="logi-answer__label">More on {product.name}</span>
             <ul>
@@ -140,6 +151,15 @@ function AnswerBody({ status, text, query }) {
       // Assistant markdown, sanitized in renderAnswer.
       dangerouslySetInnerHTML={{ __html: renderAnswer(text) }}
     />
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

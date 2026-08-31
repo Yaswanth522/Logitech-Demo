@@ -17,9 +17,7 @@ export default function ChatWidget() {
   const { pathname } = useLocation();
   const [scriptReady, setScriptReady] = useState(!!window.ChatWidget);
   const hasInitialized = useRef(false);
-  const prevEmail = useRef(user?.email);
   const visitedUrls = useRef([]);
-  const lastSentPathname = useRef(null);
 
   // Load the widget's loader script exactly once
   useEffect(() => {
@@ -34,30 +32,27 @@ export default function ChatWidget() {
     document.head.appendChild(script);
   }, []);
 
-  // Record every page the visitor lands on (since this SPA session started).
+  // Record every page the visitor lands on (since this SPA session started),
+  // so payload.visitedUrls always reflects the full trail.
   useEffect(() => {
     if (visitedUrls.current[visitedUrls.current.length - 1] !== pathname) {
       visitedUrls.current.push(pathname);
     }
   }, [pathname]);
 
-  // Push a live update on every navigation via sendEvent — the SDK's
-  // lightweight channel for this, confirmed not to reload/reinit the widget
-  // (unlike calling init() again, which destroys and rebuilds the whole
-  // widget UI and is what caused the visible "refresh" on every click).
+  // Re-init on every route/identity change so payload (email, productName,
+  // visitedUrls) is always live and correct — the SDK has no lightweight way
+  // to update payload without a full destroy()+init(), confirmed: calling
+  // init() again without destroy() first is silently a no-op (no network or
+  // postMessage activity), so this reload is unavoidable if payload must
+  // stay accurate.
   useEffect(() => {
-    if (!hasInitialized.current || typeof window.ChatWidget?.sendEvent !== "function") return;
-    if (lastSentPathname.current === pathname) return;
-    lastSentPathname.current = pathname;
+    if (!scriptReady || typeof window.ChatWidget === "undefined") return;
 
-    window.ChatWidget.sendEvent("context_update", {
-      ...(user?.email ? { email: user.email } : {}),
-      productName: productNameFor(pathname),
-      visitedUrls: [...visitedUrls.current],
-    });
-  }, [pathname, user?.email]);
+    if (hasInitialized.current && typeof window.ChatWidget.destroy === "function") {
+      window.ChatWidget.destroy();
+    }
 
-  function initWidget() {
     window.ChatWidget.init({
       yellowMessenger: {
         botId: BOT_ID,
@@ -70,25 +65,7 @@ export default function ChatWidget() {
       },
     });
     hasInitialized.current = true;
-  }
-
-  // Initialize exactly once, as soon as the script is ready.
-  useEffect(() => {
-    if (!scriptReady || typeof window.ChatWidget === "undefined" || hasInitialized.current) return;
-    initWidget();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scriptReady]);
-
-  // Only re-init when the logged-in identity actually changes (login or
-  // logout) — not on every route change, so moving around the site never
-  // reloads the widget.
-  useEffect(() => {
-    if (!hasInitialized.current || prevEmail.current === user?.email) return;
-    prevEmail.current = user?.email;
-    if (typeof window.ChatWidget.destroy === "function") window.ChatWidget.destroy();
-    initWidget();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email]);
+  }, [scriptReady, user?.email, pathname]);
 
   return null;
 }
